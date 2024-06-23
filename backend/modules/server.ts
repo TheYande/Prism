@@ -2,16 +2,15 @@ import express from 'express';
 import { client } from 'strife.js';
 import cors from "cors"
 import type { discordOauthGuild, discordOauthUser } from '../util/discord.js';
-import { DB } from './databases.js';
 import { PermissionsBitField } from 'discord.js';
 const app = express();
 const port = 3000;
-const anyltics = new DB<{ visits: number }>("anylitcs")
+import { activatedComponents, serverConfig } from './serverConfig/index.js';
+
+
+
 app.use(cors());
-app.use(async (_, _a, next) => {
-    anyltics.setData("global", { visits: ((await anyltics.getData("global"))?.visits ?? 0) + 1 })
-    next()
-})
+app.use(express.json());
 app.get('/api', (_req, res) => {
 
     res.json({
@@ -82,15 +81,50 @@ app.get('/users/:token', (req, res) => {
     res.json(discordUsers[token] || { message: "nothin here" })
 })
 
-app.get('/servers/:serverid/plugins/:pluginName', (req, res) => {
+app.get('/servers/:serverid/plugins/', async (req, res) => {
     const serverid = req.params.serverid;
-    const pluginName = req.params.pluginName;
     const { auth } = req.query
     if ((typeof auth != "string")) return unauthorized(res)
     const user = discordUsers[auth]
-    if (!user) return res.json(`No user matches this auth code`);
-    res.json(`Server ID: ${serverid}, Plugin Name: ${pluginName}`);
+    if (!user) return res.json(`No user matches this auth code ${auth}`);
+    if (!user.guilds.some((g) => `${g.id}` == serverid)) unauthorized(res)
+    res.json({ active: await activatedComponents.getData(serverid) });
 });
+
+app.post('/servers/:serverid/plugins/:name', async (req, res) => {
+    const serverid = req.params.serverid;
+    const name = req.params.name;
+    const { auth } = req.query
+    if ((typeof auth != "string")) return unauthorized(res)
+    const user = discordUsers[auth]
+    if (!user) return res.json(`No user matches this auth code ${auth}`);
+    if (!user.guilds.some((g) => `${g.id}` == serverid)) unauthorized(res)
+    let active = await activatedComponents.getData(serverid) ?? []
+
+    if (active.includes(name) != (req.body["state"] == "on"))
+        if (active.includes(name)) active = active.filter((a) => a != name)
+        else
+            active.push(name)
+
+
+    await activatedComponents.setData(serverid, active)
+    res.json({ status: "sucess" })
+})
+
+app.get('/servers/:serverid/plugins/logging/settings', async (req, res) => {
+    const serverid = req.params.serverid;
+    const { auth } = req.query
+    if ((typeof auth != "string")) return unauthorized(res)
+    const user = discordUsers[auth]
+    if (!user) return res.json(`No user matches this auth code ${auth}`);
+    if (!user.guilds.some((g) => `${g.id}` == serverid)) unauthorized(res)
+    const config = await serverConfig.getData(serverid)
+    const server = await client.guilds.fetch(serverid)
+    const channels = [...server.channels.valueOf().values()].filter((c)=> c.isTextBased()).map((c) => ({ name: c.name, id: c.id }))
+    res.json({ channel: config?.channels?.logging, all: channels })
+})
+
+
 app.get('/servers/:serverid', async (req, res) => {
     const serverid = req.params.serverid;
     const { auth } = req.query
@@ -98,7 +132,7 @@ app.get('/servers/:serverid', async (req, res) => {
     const user = discordUsers[auth]
     if (!user) return res.json(`No user matches this auth code`);
     if (!user.guilds.some((g) => `${g.id}` == serverid)) return unauthorized(res)
-    const guild = await client.guilds.fetch(serverid).catch(()=>({toJSON:()=>({code:404})}))
+    const guild = await client.guilds.fetch(serverid).catch(() => ({ toJSON: () => ({ code: 404 }) }))
     res.json(guild.toJSON())
 });
 

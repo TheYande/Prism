@@ -10,3 +10,50 @@ body {
     background-color: #111;
 
 }
+[tooltip]::after {
+	content: attr(tooltip);
+	/* Display the tooltip text */
+	position: absolute;
+	bottom: 0%;
+	/* Position above the element */
+	left: 50%;
+	/* Start at the center of the element */
+	transform: translateX(-50%) translateY(50px);
+	/* Center the tooltip */
+	white-space: nowrap;
+	/* Keep the tooltip on a single line */
+	z-index: 100;
+	background: linear-gradient(to right,
+			transparent,
+			#333 20px,
+			#333 calc(100% - 20px),
+			transparent);
+	color: #fff;
+	/* Tooltip text color */
+	padding: 2px 22px;
+	/* Tooltip padding */
+	font-size: 14px;
+	/* Tooltip font size */
+	line-height: 1.4;
+	opacity: 0;
+	/* Initially hidden */
+	transition: all 0.3s;
+	/* Fade-in effect */
+	pointer-events: none;
+	/* Tooltip should not be clickable */
+	visibility: hidden;
+	/* Initially not visible */
+	text-align: center;
+	/* Center the text inside the tooltip */
+
+}
+
+
+/* Show the tooltip when hovering over the element */
+[tooltip]:hover::after,
+[tooltip]:hover::before {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(-5px);
+
+}

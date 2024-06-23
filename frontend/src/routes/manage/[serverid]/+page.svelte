@@ -6,45 +6,70 @@
     export let data: PageData;
 </script>
 
-<div>
-    <div>
-        <img class="icon" src={data.iconURL} alt="" />
-        <h1>{data.name}</h1>
+<div class="main">
+    <div class="stats">
+        <div>
+            <img class="icon" src={data.iconURL} alt="" />
+            <h1>{data.name}</h1>
+        </div>
+        <p><b>Members:</b> {data.memberCount}</p>
+        <div>
+            <b>Emojis:</b>
+            <div class="emojis">
+                {#if data.emojis}
+                    {#each data.emojis as emojiId}
+                        <img
+                           
+                            class="emoji"
+                            src="https://cdn.discordapp.com/emojis/{emojiId}"
+                            alt=""
+                        />
+                    {/each}
+                {/if}
+            </div>
+        </div>
+        <div>
+            <b>Stickers:</b>
+            <div class="stickers">
+                {#if data.stickers}
+                    {#each data.stickers as emojiId}
+                        <img
+                            class="sticker"
+                            src="https://media.discordapp.net/stickers/{emojiId}"
+                            alt=""
+                        />
+                    {/each}
+                {/if}
+            </div>
+        </div>
     </div>
-    <p><b>Members:</b> {data.memberCount}</p>
-    <div>
-        <b>Emojis:</b>
-      <div class="emojis">
-         {#if data.emojis}
-           {#each data.emojis as emojiId}
-               <img class="emoji" src="https://cdn.discordapp.com/emojis/{emojiId}" alt="" />
-           {/each}
-         {/if}
-      </div>
-    </div>
-    <div>
-        <b>Stickers:</b>
-      <div class="stickers">
-         {#if data.stickers}
-           {#each data.stickers as emojiId}
-               <img class="sticker" src="https://media.discordapp.net/stickers/{emojiId}" alt="" />
-           {/each}
-         {/if}
-      </div>
-    </div>
-    
 </div>
+
 <!-- {JSON.stringify(data)} -->
 
 <style>
-    div div {
+    .main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .stats {
+        display: flex;
+        gap: 5px;
+    }
+
+    .stats div{
         display: flex;
         flex-direction: row;
+        /* justify-content: center; */
         align-items: center;
-        gap: 5px;
+    
     }
     .icon {
         height: 4rem;
+        width: 4rem;
         margin-right: 1rem;
     }
     div {
@@ -56,19 +81,27 @@
         margin: 0 0.2em;
         display: flex;
         justify-content: center;
-    align-items: center;
+        align-items: center;
     }
     .emojis {
-        display: flex;  
+        display: flex;
         gap: 0;
-        flex-direction: column;
+        flex-direction: row;
         flex-wrap: wrap;
-        height: 3.6em;
+        width: 50vw;
+        margin-left: 10px;
     }
     .sticker {
         height: 3.6em;
         margin: 0 0.2em;
         border-radius: 5px;
-        
+    }
+    .stickers {
+        display: flex;
+        gap: 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 50vw;
+        margin-left: 10px;
     }
 </style>
